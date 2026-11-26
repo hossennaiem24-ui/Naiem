@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   Cpu,
+  Download,
   Mail,
   MapPin,
   Megaphone,
@@ -121,6 +122,37 @@ export default function App() {
     setCopiedEmail(true);
     window.setTimeout(() => setCopiedEmail(false), 2200);
   };
+
+  const handleDownloadHtml = async () => {
+    try {
+      let htmlContent = '';
+      if (window.location.protocol === 'file:') {
+        htmlContent = '<!doctype html>\n' + document.documentElement.outerHTML;
+      } else {
+        const res = await fetch('/rashedul-portfolio.html');
+        if (!res.ok) throw new Error('Failed to fetch HTML');
+        htmlContent = await res.text();
+      }
+      const blob = new Blob([htmlContent], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'rashedul-portfolio.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.location.href = '/rashedul-portfolio.html';
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('download') === '1') {
+      void handleDownloadHtml();
+    }
+  }, []);
 
   const openContact = (service = 'Video Editing', context = '') => {
     setContactState({ open: true, service, context });
@@ -631,10 +663,21 @@ export default function App() {
             ))}
           </div>
 
-          <p className="text-xs font-medium text-slate-300">
-            Create <span className="text-cyan-400">·</span> Edit{' '}
-            <span className="text-violet-400">·</span> Inspire
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => void handleDownloadHtml()}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-cyan-400/45 bg-cyan-500/15 hover:bg-cyan-500/25 text-xs font-semibold text-cyan-200 transition-colors whitespace-nowrap cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Download Portfolio Website (.html)</span>
+            </button>
+
+            <p className="text-xs font-medium text-slate-300 whitespace-nowrap">
+              Create <span className="text-cyan-400">·</span> Edit{' '}
+              <span className="text-violet-400">·</span> Inspire
+            </p>
+          </div>
         </div>
       </footer>
 
